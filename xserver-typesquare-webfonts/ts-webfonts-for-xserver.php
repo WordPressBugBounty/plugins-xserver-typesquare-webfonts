@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: TypeSquare Webfonts for エックスサーバー
-Version: 2.0.8
+Version: 2.0.9
 Description: エックスサーバー株式会社が提供する各レンタルサーバーサービスでWebフォントを利用できるプラグインです。
-Author: XSERVER Inc.
+Author: XServer Inc.
 Author URI: https://www.xserver.ne.jp/
 Plugin URI: https://ja.wordpress.org/plugins/xserver-typesquare-webfonts/
 Text Domain: typesquare
@@ -237,20 +237,22 @@ class TypeSquare_ST
             ));
         }
 
+        // グローバル(the_post)に影響せずにフォント取得処理のみ行う
         $the_query = new WP_Query($query->query);
         $style = "";
-        while ($the_query->have_posts()) : $the_query->the_post();
-        $id = get_the_ID();
-        if (isset($font_param['typesquare_themes']['show_post_form']) && 'false' != $font_param['typesquare_themes']['show_post_form']) {
-            $post_theme = $fonts->get_selected_post_fonttheme($id);
-            $post_theme = $fonts->load_font_data($post_theme);
-            if ($post_theme) {
-                $use_font = $post_theme;
+        if( !empty($the_query->posts) ) {
+            foreach ($the_query->posts as $post_data) {
+                $id = $post_data->ID;
+                if (isset($font_param['typesquare_themes']['show_post_form']) && 'false' != $font_param['typesquare_themes']['show_post_form']) {
+                    $post_theme = $fonts->get_selected_post_fonttheme($id);
+                    $post_theme = $fonts->load_font_data($post_theme);
+                    if ($post_theme) {
+                        $use_font = $post_theme;
+                    }
+                }
+                $style .= $this->_get_font_styles($use_font, $fonttheme, $id);
             }
         }
-        $style .= $this->_get_font_styles($use_font, $fonttheme, $id);
-        endwhile;
-        wp_reset_postdata();
 
         if ($style) {
             $this->styles .= $style;
